@@ -8,7 +8,7 @@
     <ProjectGuid>7205a1ac-ea30-4c8f-90a0-be9a69182a56</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>Game1</RootNamespace>
-    <AssemblyName>Game1</AssemblyName>
+    <AssemblyName>FunctionalGame</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFSharpCoreVersion>4.4.0.0</TargetFSharpCoreVersion>
