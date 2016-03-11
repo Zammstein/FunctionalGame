@@ -54,7 +54,20 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="animtest.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="obstacle.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="player.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <Compile Include="AssemblyInfo.fs" />
+    <Compile Include="PlatformerAnimation.fs" />
+    <Compile Include="PlatformerActor.fs" />
+    <Compile Include="PlatformerInput.fs" />
+    <Compile Include="PlatformerPhysics.fs" />
     <Compile Include="GameMain.fs" />
     <Compile Include="Program.fs" />
     <None Include="App.config" />
