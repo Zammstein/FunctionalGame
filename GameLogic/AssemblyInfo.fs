@@ -1,4 +1,4 @@
-﻿namespace Game1.AssemblyInfo
+﻿namespace GameLogic.AssemblyInfo
 
 open System.Reflection
 open System.Runtime.CompilerServices
@@ -7,12 +7,12 @@ open System.Runtime.InteropServices
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[<assembly: AssemblyTitle("Game1")>]
+[<assembly: AssemblyTitle("GameLogic")>]
 [<assembly: AssemblyDescription("")>]
 [<assembly: AssemblyConfiguration("")>]
 [<assembly: AssemblyCompany("")>]
-[<assembly: AssemblyProduct("Game1")>]
-[<assembly: AssemblyCopyright("Copyright ©  2015")>]
+[<assembly: AssemblyProduct("GameLogic")>]
+[<assembly: AssemblyCopyright("Copyright ©  2016")>]
 [<assembly: AssemblyTrademark("")>]
 [<assembly: AssemblyCulture("")>]
 
@@ -22,7 +22,7 @@ open System.Runtime.InteropServices
 [<assembly: ComVisible(false)>]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[<assembly: Guid("7205a1ac-ea30-4c8f-90a0-be9a69182a56")>]
+[<assembly: Guid("401a2936-583d-4645-be45-56c88fd42b49")>]
 
 // Version information for an assembly consists of the following four values:
 // 
