@@ -51,8 +51,6 @@
   <Import Project="$(FSharpTargetsPath)" />
   <ItemGroup>
     <Compile Include="AssemblyInfo.fs" />
-    <Compile Include="Entity.fs" />
-    <Compile Include="Player.fs" />
     <Compile Include="AsteroidGame.fs" />
     <Content Include="packages.config" />
   </ItemGroup>
