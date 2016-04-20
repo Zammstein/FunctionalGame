@@ -42,6 +42,10 @@ type GunStatus =
     | Cooldown of float32
     | Ready
 
+type BarSpawnStatus = 
+    | Cooldown of float32
+    | Ready
+
 type Projectile = 
     {
         Position : Vector2
@@ -52,7 +56,16 @@ type Enemy =
         Position : Vector2
     }
 
+type Ball = 
+    {
+        Position : Vector2
+        Velocity : Vector2
+    }
 
+type Bar = 
+    {
+        Position : Vector2
+    }
 
 type Ship = 
     {
@@ -62,10 +75,13 @@ type Ship =
 
 type GameState =
     {
-        Gun         : GunStatus
-        Enemies     : List<Enemy>
-        Projectiles : List<Projectile>
-        Ship        : Ship
+        Gun             : GunStatus
+        Enemies         : List<Enemy>
+        Projectiles     : List<Projectile>
+        Ship            : Ship
+        Ball            : Ball
+        Bars            : List<Bar>
+        SpawnStatus     : BarSpawnStatus 
     }
 
 //type GamePhase = 
@@ -75,7 +91,51 @@ type GameState =
 
 
     
-    
+let updateBall (isColliding:Ball->bool) (ks:KeyboardState, ms:MouseState, dt:float32, ball:Ball) =
+    let speed = 1000.0f;
+    let ball = 
+        if (isColliding ball) then
+            {
+                ball with Velocity = Vector2(ball.Velocity.X,-50.0f) - Vector2.UnitY * dt * 60.0f
+            }
+        else if (ball.Position.Y < 400.0f) then
+            {
+                ball with Velocity = ball.Velocity + Vector2.UnitY * dt * speed
+            }
+        else 
+            ball
+            
+
+    let ball = 
+        if (ks.IsKeyDown(Keys.A) || ks.IsKeyDown(Keys.Left)) then
+            if (ball.Position.X >= 0.0f) then
+                {
+                    ball with Velocity = ball.Velocity - Vector2.UnitX * speed * dt 
+                }
+            else 
+                {
+                     ball with Velocity = Vector2(0.0f, ball.Velocity.Y)
+                }
+        else 
+            ball
+
+    let ball = 
+        if (ks.IsKeyDown(Keys.D) || ks.IsKeyDown(Keys.Right)) then
+            if (ball.Position.X <= 740.0f) then
+                {
+                    ball with Velocity = ball.Velocity + Vector2.UnitX * speed * dt 
+                }
+            else 
+                {
+                    ball with Velocity = Vector2(0.0f, ball.Velocity.Y)
+                }
+        else 
+            ball
+    { 
+        ball with 
+            Position = ball.Position + ball.Velocity * dt; 
+            Velocity = ball.Velocity * 0.95f 
+    }
 
 let updateShip (ks:KeyboardState, ms:MouseState, dt:float32, ship:Ship) =
     let speed = 1000.0f;
@@ -112,6 +172,43 @@ let updateShip (ks:KeyboardState, ms:MouseState, dt:float32, ship:Ship) =
             Position = ship.Position + ship.Velocity * dt; 
             Velocity = ship.Velocity * 0.9f 
     }
+        
+let randomBar() =
+    {
+        Bar.Position = Vector2(float32(r.Next(0, 700)), 460.0f)
+    }
+
+let updateBar(dt:float32) (bar:Bar) : Bar =
+    {
+        bar with Position = bar.Position - Vector2.UnitY * dt * 50.0f
+    }
+
+let spawnRandomBars(amount:int, bars:List<Bar>) : List<Bar> =  
+    let a = randomBar() << bars
+    let b = randomBar() << a
+    let c = randomBar() << b
+    let d = randomBar() << c
+    let e = randomBar() << d
+    let f = randomBar() << e
+    let g = randomBar() << f
+    let h = randomBar() << g
+    h
+    (*let bars = 
+        for i in 1 .. amount do
+            randomBar() << bars
+    bars*)
+    
+
+let updateBars (dt:float32) (bars:List<Bar>) (spawnStatus:BarSpawnStatus) =
+    let bars = 
+        if (spawnStatus = BarSpawnStatus.Ready) then
+            spawnRandomBars(r.Next(0,5), bars)
+        else 
+            bars
+    let bars = map (updateBar dt) bars
+    let insideScreen (e:Bar) : bool =
+        e.Position.Y > 0.0f
+    filter insideScreen bars
 
 let randomEnemy() =
     {
@@ -179,6 +276,12 @@ let drawEnemy (enemy:Enemy) : Drawable =
         Drawable.Image    = "enemy.png"
     }
 
+let drawBar (bar:Bar) : Drawable = 
+    {
+        Drawable.Position = bar.Position
+        Drawable.Image    = "bar.png"
+    }
+
 
 
 
@@ -193,27 +296,59 @@ let initialState() =
                 Position = Vector2(320.0f, 400.0f)
                 Velocity = Vector2.Zero
             }
+        Ball = 
+            {
+                Position = Vector2(320.0f, 0.0f)
+                Velocity = Vector2.Zero
+            }
+        Bars        = Empty
+        SpawnStatus = BarSpawnStatus.Ready
     }
 
 
 
 let updateState (ks:KeyboardState) (ms:MouseState) (dt:float32) (gameState:GameState) =
+    let spawnState = 
+        match gameState.SpawnStatus with
+        | BarSpawnStatus.Ready ->
+            BarSpawnStatus.Cooldown(2.0f)
+        | BarSpawnStatus.Cooldown t ->
+            if (t < 0.0f) then 
+                BarSpawnStatus.Ready
+            else 
+                BarSpawnStatus.Cooldown(t - dt)
+        
+
+
     let isShootingNow,newGun = 
         match gameState.Gun with
-        | Ready ->
+        | GunStatus.Ready ->
             if ks.IsKeyDown(Keys.Space) then
-                (fun () -> true), Cooldown 0.2f
+                (fun () -> true), GunStatus.Cooldown 0.2f
             else
-                (fun () -> false), Ready
-        | Cooldown t ->
+                (fun () -> false), GunStatus.Ready
+        | GunStatus.Cooldown t ->
             if t > 0.0f then
-                (fun () -> false), Cooldown(t-dt)
+                (fun () -> false), GunStatus.Cooldown(t-dt)
             else
-                (fun () -> false), Ready
+                (fun () -> false), GunStatus.Ready
+
     let createProjectileAtShip() =
         {
             Projectile.Position = gameState.Ship.Position
         }
+
+    let rec isBallColliding (bars:List<Bar>) (ball:Ball) = 
+        match bars with
+        | Empty -> false
+        | Node(p,ps) ->
+            let a = Rectangle(int p.Position.X, int p.Position.Y, 72, 16)
+            let b = Rectangle(int ball.Position.X, int ball.Position.Y, 60, 60)
+            if (a.Intersects(b)) then             //if Vector2.Distance(p.Position, ball.Position) < 25.0f then
+                true
+            else 
+                isBallColliding ps ball
+
     let rec isEnemyNotHit (projectiles:List<Projectile>) (e:Enemy) =
         match projectiles with
         | Empty -> true
@@ -222,18 +357,33 @@ let updateState (ks:KeyboardState) (ms:MouseState) (dt:float32) (gameState:GameS
                 false
             else
                 isEnemyNotHit ps e
+
     { 
         gameState with 
                 Ship         = updateShip(ks, ms, dt, gameState.Ship)
                 Enemies      = updateEnemies (isEnemyNotHit gameState.Projectiles) dt gameState.Enemies
                 Projectiles  = updateProjectiles createProjectileAtShip isShootingNow dt gameState.Projectiles
                 Gun          = newGun
+                Bars         = updateBars dt gameState.Bars gameState.SpawnStatus
+                Ball         = updateBall (isBallColliding gameState.Bars) (ks, ms, dt, gameState.Ball)
+                SpawnStatus  = spawnState
     }
 
 
 
 let drawState (gameState:GameState) : seq<Drawable> =
-    let listOfDrawableProjectiles =
+    let listOfDrawableBars = 
+        map drawBar gameState.Bars |> toFSharpList
+ 
+    [
+        {
+            Drawable.Position = gameState.Ball.Position
+            Drawable.Image    = "ball.png"
+        }
+    ] @ listOfDrawableBars
+        |> Seq.ofList
+
+    (*let listOfDrawableProjectiles =
         map drawProjectile gameState.Projectiles |> toFSharpList
     let listOfDrawableEnemies =
         map drawEnemy gameState.Enemies |> toFSharpList
@@ -243,4 +393,4 @@ let drawState (gameState:GameState) : seq<Drawable> =
             Drawable.Image    = "spaceShip.png"
         }
     ] @ listOfDrawableEnemies @ listOfDrawableProjectiles
-        |> Seq.ofList
+        |> Seq.ofList*)
