@@ -5,8 +5,9 @@ using Microsoft.Xna.Framework.Graphics;
 namespace MainApplication {
     class Game : Microsoft.Xna.Framework.Game {
         SpriteBatch spriteBatch;
+        SpriteFont font;
         GraphicsDeviceManager graphics;
-        AsteroidGame.GameState gameState;
+        BallGame.GameState gameState;
 
         public Game() {
             graphics = new GraphicsDeviceManager(this);
@@ -15,12 +16,13 @@ namespace MainApplication {
 
         protected override void LoadContent() {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            gameState = AsteroidGame.initialState();
+            font = Content.Load<SpriteFont>("Font");
+            gameState = BallGame.initialState();
             base.LoadContent();
         }
 
         protected override void Update(GameTime gameTime) {
-            gameState = AsteroidGame.updateState(
+            gameState = BallGame.updateState(
                 Keyboard.GetState(), Mouse.GetState(), 
                 (float)gameTime.ElapsedGameTime.TotalSeconds, 
                 gameState);
@@ -31,9 +33,12 @@ namespace MainApplication {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             spriteBatch.Begin();
-            foreach (var drawable in AsteroidGame.drawState(gameState)) {
+            foreach (var drawable in BallGame.drawState(gameState)) {
                 spriteBatch.Draw(Content.Load<Texture2D>(drawable.Image),
                 drawable.Position, Color.White);
+            }
+            foreach (var hudString in BallGame.drawHud(gameState)) {
+                spriteBatch.DrawString(font, hudString.Text, hudString.Position, Color.Black);
             }
             spriteBatch.End();
 
